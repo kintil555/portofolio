@@ -86,9 +86,63 @@ const CONFIG = {
         <h3 class="work-title">${w.title}</h3>
         <div class="work-divider"></div>
         <p class="work-year">${w.year}</p>
+        <button class="btn-view-more" data-work-idx="${i}">View More ↗</button>
       </div>
     </section>
   `).join('');
+
+  /* --- Gallery Overlay --- */
+  const overlay = document.createElement('div');
+  overlay.id = 'gallery-overlay';
+  overlay.innerHTML = `
+    <button class="gallery-back" id="gallery-back">← Back</button>
+    <div class="gallery-scroll-wrap" id="gallery-scroll-wrap">
+      <div class="gallery-track" id="gallery-track"></div>
+    </div>
+    <div class="gallery-scroll-hint">
+      <span>SCROLL</span>
+      <div class="gallery-hint-line"></div>
+      <span>→</span>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  function openGallery(workIdx) {
+    const track = document.getElementById('gallery-track');
+    track.innerHTML = CONFIG.works.map((w, i) => `
+      <div class="gitem ${i === workIdx ? 'gitem-active' : ''}">
+        <img src="${w.image}" alt="${w.title}">
+        <div class="gitem-info">
+          <p class="gitem-tag">${w.tag}</p>
+          <h3 class="gitem-title">${w.title}</h3>
+          <p class="gitem-year">${w.year}</p>
+        </div>
+      </div>
+    `).join('');
+
+    // scroll to the clicked work
+    overlay.classList.add('open');
+    document.body.classList.add('gallery-open');
+    requestAnimationFrame(() => {
+      const activeEl = track.querySelector('.gitem-active');
+      if (activeEl) {
+        document.getElementById('gallery-scroll-wrap').scrollLeft = activeEl.offsetLeft - 60;
+      }
+    });
+  }
+
+  function closeGallery() {
+    overlay.classList.remove('open');
+    document.body.classList.remove('gallery-open');
+  }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.btn-view-more')) {
+      const idx = parseInt(e.target.closest('.btn-view-more').dataset.workIdx);
+      openGallery(idx);
+    }
+  });
+  document.getElementById('gallery-back').addEventListener('click', closeGallery);
 
   /* --- About bio --- */
   document.getElementById('about-bio').textContent = CONFIG.bio;
@@ -296,6 +350,42 @@ const CONFIG = {
       btn.style.transform = `translate(${dx * 0.2}px, ${dy * 0.28}px)`;
     });
     btn.addEventListener('mouseleave', () => btn.style.transform = '');
+  });
+
+  /* ===========================================
+     GALLERY DRAG-TO-SCROLL
+     =========================================== */
+  const galWrap = document.getElementById('gallery-scroll-wrap');
+  let isDragging = false, dragStartX = 0, scrollStart = 0;
+  galWrap.addEventListener('mousedown', e => {
+    isDragging = true;
+    dragStartX = e.pageX;
+    scrollStart = galWrap.scrollLeft;
+    galWrap.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    galWrap.scrollLeft = scrollStart - (e.pageX - dragStartX);
+  });
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    galWrap.style.cursor = 'grab';
+  });
+
+  /* Prevent horizontal panel scroll while gallery open */
+  window.addEventListener('wheel', e => {
+    const overlayEl = document.getElementById('gallery-overlay');
+    if (overlayEl && overlayEl.classList.contains('open')) {
+      galWrap.scrollLeft += e.deltaY + e.deltaX;
+    }
+  }, { passive: true });
+
+  /* ESC to close gallery */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const overlayEl = document.getElementById('gallery-overlay');
+      if (overlayEl && overlayEl.classList.contains('open')) closeGallery();
+    }
   });
 
 })();
