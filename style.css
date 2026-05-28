@@ -4,7 +4,7 @@
    =========================== */
 
 /* ---- FONTS ---- */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
 
 /* ---- CSS VARIABLES (edit bebas) ---- */
 :root {
@@ -21,8 +21,8 @@
   --border-hover: rgba(255, 255, 255, 0.14);
   --radius: 20px;
   --radius-sm: 12px;
-  --font-main: 'Outfit', sans-serif;
-  --font-display: 'Syne', sans-serif;
+  --font-main: 'Nunito', sans-serif;
+  --font-display: 'Nunito', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
 
@@ -227,11 +227,11 @@ ul { list-style: none; }
   margin-bottom: 8px;
 }
 .hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6vw, 5.5rem);
-  font-weight: 800;
-  line-height: 1.0;
-  letter-spacing: -0.03em;
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
   margin-bottom: 24px;
 }
 .hero-title .name-gradient {
@@ -329,10 +329,10 @@ ul { list-style: none; }
 .section-alt { background: var(--bg-alt); }
 .section-header { margin-bottom: 48px; }
 .section-title {
-  font-family: var(--font-display);
+  font-family: 'Nunito', sans-serif;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   line-height: 1.1;
   margin-top: 6px;
 }
@@ -676,10 +676,10 @@ body.cursor-hover .cursor-ring { width: 60px; height: 60px; border-color: rgba(5
   margin-bottom: 6px;
 }
 .work-card-title {
-  font-family: var(--font-display);
+  font-family: 'Nunito', sans-serif;
   font-size: 1.2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 .work-card-meta {
