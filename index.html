@@ -9,186 +9,87 @@
 </head>
 <body>
 
-  <!-- Custom cursor -->
   <div class="cursor-dot" id="cursor-dot"></div>
   <div class="cursor-ring" id="cursor-ring"></div>
 
-  <!-- ==============================
-       NAVBAR
-  ================================= -->
-  <nav id="navbar">
-    <div class="container nav-inner">
-      <a href="#hero" class="nav-logo">&lt;<span class="brand-name">GK_TW</span>/&gt;</a>
+  <!-- HORIZONTAL SCROLL CONTAINER -->
+  <div class="h-scroll" id="hscroll">
 
-      <ul class="nav-links">
-        <li><a href="#works">Karya</a></li>
-        <li><a href="#about">Tentang</a></li>
-        <li><a href="#commission">Komisi</a></li>
-      </ul>
+    <!-- PANEL 1: HERO -->
+    <section class="panel panel-hero" id="panel-hero">
+      <nav class="nav">
+        <span class="nav-logo">&lt;<span class="brand-name">GK_TW</span>/&gt;</span>
+        <ul class="nav-links">
+          <li><a href="#" data-panel="1">Karya</a></li>
+          <li><a href="#" data-panel="3">Tentang</a></li>
+          <li><a href="#" data-panel="4">Komisi</a></li>
+        </ul>
+      </nav>
 
-      <button class="nav-hamburger" id="hamburger" aria-label="Menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- Mobile menu -->
-  <div id="nav-mobile">
-    <a href="#works">Karya</a>
-    <a href="#about">Tentang</a>
-    <a href="#commission">Komisi</a>
-  </div>
-
-
-  <!-- ==============================
-       HERO
-  ================================= -->
-  <section id="hero">
-    <div class="hero-bg-glow-1"></div>
-    <div class="hero-bg-glow-2"></div>
-
-    <div class="container">
-      <div class="hero-grid">
-
-        <!-- Text -->
-        <div class="hero-text">
-          <div class="hero-status-badge fade-up" data-delay="50">
-            <span class="hero-status-dot"></span>
-            Commission Closed
+      <div class="hero-content">
+        <div class="hero-left">
+          <div class="status-badge" id="hero-badge">
+            <span class="status-dot"></span>
+            <span id="badge-text">Commission Closed</span>
           </div>
-
-          <p class="hero-subtitle fade-up" data-delay="120">Minecraft 3D Animator</p>
-
-          <h1 class="hero-title fade-up" data-delay="200" id="hero-title">
-            Halo,<br><span class="name-gradient">GK_TW</span>
-          </h1>
-
-          <p class="hero-desc fade-up" data-delay="280" id="hero-desc">
-            Loading...
-          </p>
-
-          <div class="hero-ctas fade-up" data-delay="360">
-            <a href="#works" class="btn-primary">Lihat Karya →</a>
-            <a href="#commission" class="btn-secondary">Info Komisi</a>
+          <p class="hero-sub">Minecraft 3D Animator</p>
+          <h1 class="hero-title" id="hero-title">Halo,<br><span class="gradient-text">GK_TW</span></h1>
+          <p class="hero-desc" id="hero-desc">Loading...</p>
+          <div class="hero-btns">
+            <button class="btn-main" data-scroll-to="1">Lihat Karya →</button>
+            <button class="btn-ghost" data-scroll-to="4">Info Komisi</button>
           </div>
         </div>
-
-        <!-- Visual -->
-        <div class="hero-visual fade-up" data-delay="200">
-          <div class="hero-img-wrap">
+        <div class="hero-right">
+          <div class="hero-img-wrap" id="hero-img-wrap">
             <div class="hero-img-glow"></div>
-            <div class="hero-img-card">
-              <img id="hero-img" src="" alt="Featured Work">
-              <span class="hero-img-badge">✦ Latest Work</span>
-            </div>
+            <img id="hero-img" src="" alt="Featured Work">
+            <span class="img-badge">✦ Latest Work</span>
           </div>
         </div>
-
-      </div>
-    </div>
-    <div class="scroll-hint">
-      <span>Scroll</span>
-      <div class="scroll-hint-line"></div>
-    </div>
-  </section>
-
-
-  <!-- ==============================
-       WORKS / GRID
-  ================================= -->
-  <section id="works" class="section section-alt">
-    <div class="container">
-
-      <div class="section-header fade-up">
-        <p class="tag-label">Portfolio</p>
-        <h2 class="section-title">Karya Saya</h2>
       </div>
 
-      <div class="works-grid fade-up" data-delay="100" id="works-grid">
-        <!-- JS populated -->
+      <div class="scroll-arrow">
+        <span>SCROLL</span>
+        <div class="arrow-line"></div>
+        <span>→</span>
       </div>
+    </section>
 
-    </div>
-  </section>
+    <!-- PANELS 2+: WORKS (JS generated) -->
+    <div id="work-panels"></div>
 
-
-  <!-- ==============================
-       ABOUT
-  ================================= -->
-  <section id="about" class="section">
-    <div class="container">
-      <div class="about-grid">
-
-        <!-- Left: text -->
-        <div>
-          <div class="fade-up">
-            <p class="tag-label" style="margin-bottom:6px;">Tentang Saya</p>
-            <h2 class="section-title" style="margin-bottom:20px;">Who am I?</h2>
-            <p class="about-desc" id="about-bio">Loading...</p>
-          </div>
-
-          <div class="fade-up" data-delay="80">
-            <p class="skills-label">Keahlian</p>
-            <div class="skills-wrap" id="skills-wrap"></div>
-          </div>
+    <!-- PANEL: ABOUT -->
+    <section class="panel panel-about" id="panel-about">
+      <div class="about-inner">
+        <div class="about-left">
+          <p class="panel-label">Tentang</p>
+          <h2 class="panel-title">Who am I?</h2>
+          <p class="about-bio" id="about-bio">Loading...</p>
+          <div class="skills-wrap" id="skills-wrap"></div>
         </div>
-
-        <!-- Right: gallery -->
-        <div class="fade-up" data-delay="120">
-          <div class="about-gallery">
-            <div class="gallery-main" id="gallery-main"></div>
-            <div id="gallery-secondary" style="display:contents;"></div>
-          </div>
+        <div class="about-right">
+          <div class="about-img-stack" id="about-img-stack"></div>
         </div>
-
       </div>
-    </div>
-  </section>
+    </section>
 
-
-  <!-- ==============================
-       COMMISSION
-  ================================= -->
-  <section id="commission" class="section section-alt">
-    <div class="container">
-      <div class="commission-inner">
-
-        <div class="fade-up">
-          <p class="tag-label" style="margin-bottom:6px;">Komisi</p>
-          <h2 class="section-title">Mau Kolaborasi?</h2>
+    <!-- PANEL: COMMISSION -->
+    <section class="panel panel-commission" id="panel-commission">
+      <div class="comm-inner">
+        <p class="panel-label">Komisi</p>
+        <h2 class="panel-title">Mau<br>Kolaborasi?</h2>
+        <div class="comm-badge" id="comm-badge">
+          <span class="status-dot"></span>
+          <span id="comm-status-text">Komisi Ditutup</span>
         </div>
-
-        <div class="fade-up" data-delay="100">
-          <div class="commission-card">
-            <div class="comm-status-badge" id="comm-badge">
-              <span class="comm-status-dot"></span>
-              <span class="comm-status-text">Komisi Ditutup</span>
-            </div>
-
-            <div class="comm-icon">🎬</div>
-
-            <p class="comm-desc" id="comm-message">Loading...</p>
-
-            <div class="social-row" id="social-row"></div>
-          </div>
-        </div>
-
+        <p class="comm-desc" id="comm-message">Loading...</p>
+        <div class="social-row" id="social-row"></div>
+        <p class="footer-note">© <span id="footer-year"></span> GK_TW · All rights reserved</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-
-  <!-- ==============================
-       FOOTER
-  ================================= -->
-  <footer>
-    <div class="container footer-inner">
-      <span class="footer-logo">&lt;<span class="brand-name">GK_TW</span>/&gt;</span>
-      <span class="footer-copy"><span id="footer-year"></span> · All rights reserved</span>
-    </div>
-  </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>
