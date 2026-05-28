@@ -29,18 +29,21 @@ const CONFIG = {
       tag: "Horror · Cinematic",
       image: "img/thumbnailbackrooms.png",
       year: "2024",
+      desc: "Eksplorasi atmosfer horror dengan pencahayaan cinematic yang mencekam.",
     },
     {
       title: "Group Shot",
       tag: "Character · Render",
       image: "img/gk_tw.png",
       year: "2024",
+      desc: "Render karakter dengan komposisi grup yang dinamis dan detail tinggi.",
     },
     {
       title: "Village Scene",
       tag: "Cinematic · Story",
       image: "img/edited.png",
       year: "2024",
+      desc: "Adegan desa dengan suasana storytelling yang kuat dan sinematik.",
     },
   ],
 };
@@ -78,7 +81,8 @@ const CONFIG = {
   workPanelsEl.innerHTML = CONFIG.works.map((w, i) => `
     <section class="panel panel-work" data-work="${i}">
       <div class="work-img-wrap">
-        <img src="${w.image}" alt="${w.title}" loading="lazy">
+        <img src="${w.image}" alt="${w.title}" loading="lazy" class="work-bg-img">
+        <div class="work-img-overlay"></div>
       </div>
       <div class="work-card-inner">
         <p class="work-num">${String(i + 1).padStart(2, '0')} / ${String(CONFIG.works.length).padStart(2, '0')}</p>
@@ -91,58 +95,119 @@ const CONFIG = {
     </section>
   `).join('');
 
-  /* --- Gallery Overlay --- */
-  const overlay = document.createElement('div');
-  overlay.id = 'gallery-overlay';
-  overlay.innerHTML = `
-    <button class="gallery-back" id="gallery-back">← Back</button>
-    <div class="gallery-scroll-wrap" id="gallery-scroll-wrap">
-      <div class="gallery-track" id="gallery-track"></div>
+  /* =============================================
+     WORKS VIEWER — Full screen vertical scroll
+     bukan overlay baru, tapi reveal dari panel itu
+     ============================================= */
+  const worksViewer = document.createElement('div');
+  worksViewer.id = 'works-viewer';
+  worksViewer.innerHTML = `
+    <div class="wv-header">
+      <button class="wv-back" id="wv-back">← Kembali</button>
+      <span class="wv-label">Karya Saya</span>
     </div>
-    <div class="gallery-scroll-hint">
+    <div class="wv-scroll" id="wv-scroll">
+      ${CONFIG.works.map((w, i) => `
+        <div class="wv-item" data-idx="${i}">
+          <div class="wv-img-wrap">
+            <img src="${w.image}" alt="${w.title}" loading="lazy">
+            <div class="wv-img-shine"></div>
+          </div>
+          <div class="wv-info">
+            <p class="wv-num">${String(i + 1).padStart(2, '0')}</p>
+            <p class="wv-tag">${w.tag}</p>
+            <h3 class="wv-title">${w.title}</h3>
+            <p class="wv-year">${w.year}</p>
+            ${w.desc ? `<p class="wv-desc">${w.desc}</p>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="wv-scroll-hint">
       <span>SCROLL</span>
-      <div class="gallery-hint-line"></div>
-      <span>→</span>
+      <div class="wv-hint-line"></div>
+      <span>↓</span>
     </div>
   `;
-  document.body.appendChild(overlay);
+  document.body.appendChild(worksViewer);
 
-  function openGallery(workIdx) {
-    const track = document.getElementById('gallery-track');
-    track.innerHTML = CONFIG.works.map((w, i) => `
-      <div class="gitem ${i === workIdx ? 'gitem-active' : ''}">
-        <img src="${w.image}" alt="${w.title}">
-        <div class="gitem-info">
-          <p class="gitem-tag">${w.tag}</p>
-          <h3 class="gitem-title">${w.title}</h3>
-          <p class="gitem-year">${w.year}</p>
-        </div>
-      </div>
-    `).join('');
+  let viewerOpen = false;
 
-    // scroll to the clicked work
-    overlay.classList.add('open');
-    document.body.classList.add('gallery-open');
+  function openWorksViewer(targetIdx) {
+    viewerOpen = true;
+    worksViewer.classList.add('open');
+    document.body.classList.add('viewer-open');
+
+    // Scroll to target item
     requestAnimationFrame(() => {
-      const activeEl = track.querySelector('.gitem-active');
-      if (activeEl) {
-        document.getElementById('gallery-scroll-wrap').scrollLeft = activeEl.offsetLeft - 60;
+      const items = worksViewer.querySelectorAll('.wv-item');
+      const target = items[targetIdx];
+      if (target) {
+        const scroll = document.getElementById('wv-scroll');
+        scroll.scrollTop = target.offsetTop - 80;
       }
     });
   }
 
-  function closeGallery() {
-    overlay.classList.remove('open');
-    document.body.classList.remove('gallery-open');
+  function closeWorksViewer() {
+    viewerOpen = false;
+    worksViewer.classList.remove('open');
+    document.body.classList.remove('viewer-open');
   }
 
+  // Open on View More click
   document.addEventListener('click', e => {
     if (e.target.closest('.btn-view-more')) {
       const idx = parseInt(e.target.closest('.btn-view-more').dataset.workIdx);
-      openGallery(idx);
+      openWorksViewer(idx);
     }
   });
-  document.getElementById('gallery-back').addEventListener('click', closeGallery);
+
+  document.getElementById('wv-back').addEventListener('click', closeWorksViewer);
+
+  // ESC to close
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && viewerOpen) closeWorksViewer();
+  });
+
+  // Parallax on wv-items scroll
+  const wvScroll = document.getElementById('wv-scroll');
+  wvScroll.addEventListener('scroll', () => {
+    wvScroll.querySelectorAll('.wv-item').forEach(item => {
+      const rect = item.getBoundingClientRect();
+      const center = window.innerHeight / 2;
+      const offset = (rect.top + rect.height / 2 - center) / window.innerHeight;
+      const img = item.querySelector('img');
+      if (img) img.style.transform = `scale(1.08) translateY(${offset * 30}px)`;
+    });
+  }, { passive: true });
+
+  // Mouse tilt on wv-items
+  wvScroll.addEventListener('mousemove', e => {
+    const item = e.target.closest('.wv-item');
+    if (!item) return;
+    const rect = item.getBoundingClientRect();
+    const dx = (e.clientX - rect.left) / rect.width - 0.5;
+    const dy = (e.clientY - rect.top) / rect.height - 0.5;
+    const img = item.querySelector('img');
+    if (img) {
+      img.style.transform = `scale(1.08) translate(${dx * -18}px, ${dy * -12}px)`;
+    }
+    const shine = item.querySelector('.wv-img-shine');
+    if (shine) {
+      shine.style.background = `radial-gradient(circle at ${(dx+0.5)*100}% ${(dy+0.5)*100}%, rgba(255,255,255,0.08), transparent 60%)`;
+      shine.style.opacity = '1';
+    }
+  });
+  wvScroll.addEventListener('mouseleave', e => {
+    const item = e.target.closest?.('.wv-item');
+    wvScroll.querySelectorAll('.wv-item').forEach(it => {
+      const img = it.querySelector('img');
+      if (img) img.style.transform = '';
+      const shine = it.querySelector('.wv-img-shine');
+      if (shine) shine.style.opacity = '0';
+    });
+  });
 
   /* --- About bio --- */
   document.getElementById('about-bio').textContent = CONFIG.bio;
@@ -201,7 +266,6 @@ const CONFIG = {
   const panels = Array.from(hscroll.querySelectorAll('.panel'));
   const totalPanels = panels.length;
   let currentPanel = 0;
-  let isScrolling = false;
 
   /* Build panel dot indicators */
   const dotsContainer = document.createElement('div');
@@ -228,12 +292,12 @@ const CONFIG = {
     updateDots();
   }
 
-  /* Wheel scroll */
+  /* Wheel scroll — blocked when viewer open */
   let wheelDelta = 0;
   let wheelTimer = null;
   window.addEventListener('wheel', e => {
+    if (viewerOpen) return;
     e.preventDefault();
-    if (isScrolling) return;
     wheelDelta += e.deltaY + e.deltaX;
     clearTimeout(wheelTimer);
     wheelTimer = setTimeout(() => {
@@ -247,6 +311,7 @@ const CONFIG = {
 
   /* Keyboard */
   window.addEventListener('keydown', e => {
+    if (viewerOpen) return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goToPanel(currentPanel + 1);
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goToPanel(currentPanel - 1);
   });
@@ -258,6 +323,7 @@ const CONFIG = {
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
   window.addEventListener('touchend', e => {
+    if (viewerOpen) return;
     const dx = touchStartX - e.changedTouches[0].clientX;
     const dy = touchStartY - e.changedTouches[0].clientY;
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
@@ -303,7 +369,7 @@ const CONFIG = {
       cursorRing.style.top = ringY + 'px';
       requestAnimationFrame(animRing);
     })();
-    document.querySelectorAll('a, button, .skill-tag, .social-link, .work-card-inner').forEach(el => {
+    document.querySelectorAll('a, button, .skill-tag, .social-link, .work-card-inner, .wv-item').forEach(el => {
       el.addEventListener('mouseenter', () => document.body.classList.add('cur-hover'));
       el.addEventListener('mouseleave', () => document.body.classList.remove('cur-hover'));
     });
@@ -317,25 +383,40 @@ const CONFIG = {
     if (currentPanel !== 0 || !heroWrap) return;
     const dx = (e.clientX / window.innerWidth - 0.5) * 16;
     const dy = (e.clientY / window.innerHeight - 0.5) * 10;
-    heroWrap.style.transform = `rotateY(${dx * 0.35}deg) rotateX(${-dy * 0.3}deg) translateY(var(--fy, 0px))`;
+    heroWrap.style.transform = `rotateY(${dx * 0.35}deg) rotateX(${-dy * 0.3}deg)`;
   }, { passive: true });
 
   /* ===========================================
-     WORK PANEL TILT
+     WORK PANEL — konsisten: tilt + parallax + shine
+     semua panel dapat interaksi yang sama persis
      =========================================== */
   document.querySelectorAll('.panel-work').forEach(panel => {
+    const img = panel.querySelector('.work-bg-img');
+    const overlay = panel.querySelector('.work-img-overlay');
+
     panel.addEventListener('mousemove', e => {
       const rect = panel.getBoundingClientRect();
-      const img = panel.querySelector('.work-img-wrap img');
       const dx = (e.clientX - rect.left) / rect.width;
       const dy = (e.clientY - rect.top) / rect.height;
+
+      // Parallax translate + slight scale
       if (img) {
-        img.style.transform = `scale(1.05) translate(${(dx - 0.5) * -10}px, ${(dy - 0.5) * -8}px)`;
+        img.style.transform = `scale(1.12) translate(${(dx - 0.5) * -20}px, ${(dy - 0.5) * -14}px)`;
+        img.style.opacity = '0.32';
+      }
+
+      // Dynamic gradient overlay shimmer
+      if (overlay) {
+        overlay.style.background = `radial-gradient(circle at ${dx * 100}% ${dy * 100}%, rgba(52,211,153,0.06) 0%, rgba(8,9,13,0.55) 60%)`;
       }
     });
+
     panel.addEventListener('mouseleave', () => {
-      const img = panel.querySelector('.work-img-wrap img');
-      if (img) img.style.transform = '';
+      if (img) {
+        img.style.transform = '';
+        img.style.opacity = '';
+      }
+      if (overlay) overlay.style.background = '';
     });
   });
 
@@ -352,40 +433,32 @@ const CONFIG = {
     btn.addEventListener('mouseleave', () => btn.style.transform = '');
   });
 
-  /* ===========================================
-     GALLERY DRAG-TO-SCROLL
-     =========================================== */
-  const galWrap = document.getElementById('gallery-scroll-wrap');
-  let isDragging = false, dragStartX = 0, scrollStart = 0;
-  galWrap.addEventListener('mousedown', e => {
-    isDragging = true;
-    dragStartX = e.pageX;
-    scrollStart = galWrap.scrollLeft;
-    galWrap.style.cursor = 'grabbing';
-  });
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    galWrap.scrollLeft = scrollStart - (e.pageX - dragStartX);
-  });
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    galWrap.style.cursor = 'grab';
-  });
+})();
 
-  /* Prevent horizontal panel scroll while gallery open */
-  window.addEventListener('wheel', e => {
-    const overlayEl = document.getElementById('gallery-overlay');
-    if (overlayEl && overlayEl.classList.contains('open')) {
-      galWrap.scrollLeft += e.deltaY + e.deltaX;
-    }
-  }, { passive: true });
+/* Intersection observer untuk wv-items — trigger saat scroll di dalam viewer */
+(function() {
+  const wvScrollEl = document.getElementById('wv-scroll');
+  const items = document.querySelectorAll('.wv-item');
 
-  /* ESC to close gallery */
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      const overlayEl = document.getElementById('gallery-overlay');
-      if (overlayEl && overlayEl.classList.contains('open')) closeGallery();
+  function checkVisible() {
+    const scrollTop = wvScrollEl.scrollTop;
+    const viewH = wvScrollEl.clientHeight;
+    items.forEach(item => {
+      const top = item.offsetTop - wvScrollEl.offsetTop;
+      if (top < scrollTop + viewH * 0.9) {
+        item.classList.add('visible');
+      }
+    });
+  }
+
+  wvScrollEl.addEventListener('scroll', checkVisible, { passive: true });
+
+  // Also trigger when viewer opens
+  const viewer = document.getElementById('works-viewer');
+  const openObserver = new MutationObserver(() => {
+    if (viewer.classList.contains('open')) {
+      setTimeout(checkVisible, 100);
     }
   });
-
+  openObserver.observe(viewer, { attributes: true, attributeFilter: ['class'] });
 })();
