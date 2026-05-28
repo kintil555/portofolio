@@ -161,6 +161,24 @@ const CONFIG = {
     trackWrap.addEventListener('mouseup', () => { isDragging = false; trackWrap.style.cursor = ''; });
     trackWrap.addEventListener('mouseleave', () => { isDragging = false; trackWrap.style.cursor = ''; });
 
+    // Wheel scroll horizontal di dalam gallery (supaya nggak trigger h-scroll utama)
+    trackWrap.addEventListener('wheel', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      trackWrap.scrollLeft += e.deltaY + e.deltaX;
+    }, { passive: false });
+
+    // Touch scroll horizontal
+    let touchStartX = 0, touchScrollLeft = 0;
+    trackWrap.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].pageX;
+      touchScrollLeft = trackWrap.scrollLeft;
+    }, { passive: true });
+    trackWrap.addEventListener('touchmove', e => {
+      const dx = touchStartX - e.touches[0].pageX;
+      trackWrap.scrollLeft = touchScrollLeft + dx;
+    }, { passive: true });
+
     // Mouse tilt + shine on pg-items
     gallery.querySelectorAll('.pg-item').forEach(item => {
       item.addEventListener('mousemove', e => {

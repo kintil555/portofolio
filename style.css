@@ -770,9 +770,9 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   transition: opacity 0.5s, transform 0.5s !important;
 }
 .work-bg-img.revealed {
-  opacity: 0.55 !important;
+  opacity: 1 !important;
   transform: scale(1.04) !important;
-  filter: brightness(0.7) !important;
+  filter: brightness(0.85) saturate(1.1) !important;
 }
 
 /* Hide the work card text when gallery opens */
@@ -798,6 +798,8 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   transform: translateY(16px);
   transition: opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1),
               transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+  /* Subtle dark vignette so text tetap readable di atas gambar */
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(8,9,13,0.4) 100%);
 }
 .panel-gallery.open {
   opacity: 1;
