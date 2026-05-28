@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portfolio Minecraft 3D Animator — GK_TW" />
+  <title data-name></title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+  <!-- ═══ NAV ═══ -->
+  <nav id="main-nav">
+    <div class="container nav-inner">
+      <a href="#hero" class="nav-logo">
+        &lt;<span data-name>GK_TW</span>/&gt;
+      </a>
+      <ul id="nav-links">
+        <li><a href="#works" class="nav-link">Karya</a></li>
+        <li><a href="#about" class="nav-link">Tentang</a></li>
+        <li><a href="#commission" class="nav-link">Komisi</a></li>
+      </ul>
+      <button id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="container hero-grid">
+
+      <div class="hero-content">
+        <div id="commission-badge"></div>
+        <p class="hero-eyebrow">Minecraft 3D Animator</p>
+        <h1 class="hero-name">
+          Halo, saya<br />
+          <span class="highlight" data-name>GK_TW</span>
+        </h1>
+        <p class="hero-tagline" data-tagline>Minecraft 3D Animator</p>
+        <p class="hero-bio" data-bio></p>
+        <div class="hero-btns">
+          <a href="#works" class="btn-primary">Lihat Karya →</a>
+          <a href="#commission" class="btn-outline">Info Komisi</a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-img-frame">
+          <img src="img/thumbnailbackrooms.png" alt="Featured work" />
+          <div class="hero-img-badge">✦ Latest Work</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ WORKS ═══ -->
+  <section id="works">
+    <div class="container">
+      <p class="section-label reveal">Portfolio</p>
+      <h2 class="section-title reveal">Karya Saya</h2>
+
+      <div class="slider-wrap reveal">
+        <div id="slider-track">
+          <!-- Slides diisi otomatis dari config.js -->
+        </div>
+      </div>
+
+      <div class="slider-controls reveal">
+        <div id="slider-dots"></div>
+        <div class="slider-arrows">
+          <button class="arrow-btn" id="slide-prev" aria-label="Previous">‹</button>
+          <button class="arrow-btn" id="slide-next" aria-label="Next">›</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ABOUT ═══ -->
+  <section id="about">
+    <div class="container about-grid">
+
+      <div class="about-text">
+        <p class="section-label reveal">Tentang Saya</p>
+        <h2 class="section-title reveal">Who am I?</h2>
+        <div class="reveal">
+          <p data-bio></p>
+        </div>
+        <div id="skills-list" class="reveal"></div>
+      </div>
+
+      <div class="about-visual reveal">
+        <div class="about-thumb">
+          <img src="img/gk_tw.png" alt="Work sample 1" loading="lazy" />
+        </div>
+        <div class="about-thumb">
+          <img src="img/thumbnailbackrooms.png" alt="Work sample 2" loading="lazy" />
+        </div>
+        <div class="about-thumb">
+          <img src="img/edited.png" alt="Work sample 3" loading="lazy" />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ COMMISSION ═══ -->
+  <section id="commission">
+    <div class="container">
+      <p class="section-label reveal" style="text-align:center">Komisi</p>
+      <h2 class="section-title reveal" style="text-align:center">Mau Kolaborasi?</h2>
+
+      <div class="commission-card reveal">
+        <div class="commission-icon">🎬</div>
+        <h3>Status Komisi</h3>
+        <p id="commission-note"></p>
+        <div id="social-links"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer>
+    <div class="container">
+      <p data-footer></p>
+    </div>
+  </footer>
+
+  <!-- Scripts — config.js harus sebelum main.js -->
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
