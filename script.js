@@ -96,117 +96,164 @@ const CONFIG = {
   `).join('');
 
   /* =============================================
-     WORKS VIEWER — Full screen vertical scroll
-     bukan overlay baru, tapi reveal dari panel itu
+     WORKS GALLERY — In-panel horizontal scroll
+     Overlay gelap fade out, gallery muncul di atas
+     background panel yang tetap keliatan
      ============================================= */
-  const worksViewer = document.createElement('div');
-  worksViewer.id = 'works-viewer';
-  worksViewer.innerHTML = `
-    <div class="wv-header">
-      <button class="wv-back" id="wv-back">← Kembali</button>
-      <span class="wv-label">Karya Saya</span>
-    </div>
-    <div class="wv-scroll" id="wv-scroll">
-      ${CONFIG.works.map((w, i) => `
-        <div class="wv-item" data-idx="${i}">
-          <div class="wv-img-wrap">
-            <img src="${w.image}" alt="${w.title}" loading="lazy">
-            <div class="wv-img-shine"></div>
-          </div>
-          <div class="wv-info">
-            <p class="wv-num">${String(i + 1).padStart(2, '0')}</p>
-            <p class="wv-tag">${w.tag}</p>
-            <h3 class="wv-title">${w.title}</h3>
-            <p class="wv-year">${w.year}</p>
-            ${w.desc ? `<p class="wv-desc">${w.desc}</p>` : ''}
-          </div>
-        </div>
-      `).join('')}
-    </div>
-    <div class="wv-scroll-hint">
-      <span>SCROLL</span>
-      <div class="wv-hint-line"></div>
-      <span>↓</span>
-    </div>
-  `;
-  document.body.appendChild(worksViewer);
 
   let viewerOpen = false;
+  let activePanel = null;
 
-  function openWorksViewer(targetIdx) {
+  // Inject gallery HTML into each work panel
+  document.querySelectorAll('.panel-work').forEach((panel, panelIdx) => {
+
+    // Gallery container (starts hidden, inside the panel)
+    const gallery = document.createElement('div');
+    gallery.className = 'panel-gallery';
+    gallery.innerHTML = `
+      <div class="pg-header">
+        <button class="pg-back">← Kembali</button>
+        <span class="pg-label">Karya Saya</span>
+        <span class="pg-hint">DRAG / SCROLL →</span>
+      </div>
+      <div class="pg-track-wrap">
+        <div class="pg-track">
+          ${CONFIG.works.map((w, i) => `
+            <div class="pg-item ${i === panelIdx ? 'pg-item-active' : ''}">
+              <div class="pg-img-wrap">
+                <img src="${w.image}" alt="${w.title}" loading="lazy">
+                <div class="pg-shine"></div>
+              </div>
+              <div class="pg-info">
+                <p class="pg-num">${String(i + 1).padStart(2, '0')}</p>
+                <p class="pg-tag">${w.tag}</p>
+                <h3 class="pg-title">${w.title}</h3>
+                <p class="pg-year">${w.year}</p>
+                ${w.desc ? `<p class="pg-desc">${w.desc}</p>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    panel.appendChild(gallery);
+
+    // Back button
+    gallery.querySelector('.pg-back').addEventListener('click', () => {
+      closeGallery(panel, gallery);
+    });
+
+    // Drag scroll on track
+    const trackWrap = gallery.querySelector('.pg-track-wrap');
+    let isDragging = false, startX = 0, scrollLeft = 0;
+    trackWrap.addEventListener('mousedown', e => {
+      isDragging = true;
+      startX = e.pageX - trackWrap.offsetLeft;
+      scrollLeft = trackWrap.scrollLeft;
+      trackWrap.style.cursor = 'grabbing';
+    });
+    trackWrap.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const x = e.pageX - trackWrap.offsetLeft;
+      trackWrap.scrollLeft = scrollLeft - (x - startX);
+    });
+    trackWrap.addEventListener('mouseup', () => { isDragging = false; trackWrap.style.cursor = ''; });
+    trackWrap.addEventListener('mouseleave', () => { isDragging = false; trackWrap.style.cursor = ''; });
+
+    // Mouse tilt + shine on pg-items
+    gallery.querySelectorAll('.pg-item').forEach(item => {
+      item.addEventListener('mousemove', e => {
+        const rect = item.getBoundingClientRect();
+        const dx = (e.clientX - rect.left) / rect.width - 0.5;
+        const dy = (e.clientY - rect.top) / rect.height - 0.5;
+        const img = item.querySelector('img');
+        if (img) img.style.transform = `scale(1.05) translate(${dx * -12}px, ${dy * -8}px)`;
+        const shine = item.querySelector('.pg-shine');
+        if (shine) {
+          shine.style.background = `radial-gradient(circle at ${(dx+0.5)*100}% ${(dy+0.5)*100}%, rgba(255,255,255,0.1), transparent 60%)`;
+          shine.style.opacity = '1';
+        }
+      });
+      item.addEventListener('mouseleave', () => {
+        const img = item.querySelector('img');
+        if (img) img.style.transform = '';
+        const shine = item.querySelector('.pg-shine');
+        if (shine) shine.style.opacity = '0';
+      });
+    });
+  });
+
+  function openGallery(panel, gallery, targetIdx) {
     viewerOpen = true;
-    worksViewer.classList.add('open');
+    activePanel = panel;
+
+    // Fade out the dark overlay on the panel
+    const overlay = panel.querySelector('.work-img-overlay');
+    const bgImg = panel.querySelector('.work-bg-img');
+    const cardInner = panel.querySelector('.work-card-inner');
+
+    if (overlay) overlay.classList.add('fade-out');
+    if (bgImg) bgImg.classList.add('revealed');
+    if (cardInner) cardInner.classList.add('hidden-for-gallery');
+
+    // Show gallery
+    gallery.classList.add('open');
     document.body.classList.add('viewer-open');
 
     // Scroll to target item
     requestAnimationFrame(() => {
-      const items = worksViewer.querySelectorAll('.wv-item');
+      const trackWrap = gallery.querySelector('.pg-track-wrap');
+      const items = gallery.querySelectorAll('.pg-item');
       const target = items[targetIdx];
-      if (target) {
-        const scroll = document.getElementById('wv-scroll');
-        scroll.scrollTop = target.offsetTop - 80;
+      if (target && trackWrap) {
+        trackWrap.scrollLeft = target.offsetLeft - 60;
       }
+      // Animate items in
+      setTimeout(() => {
+        items.forEach((item, i) => {
+          setTimeout(() => item.classList.add('visible'), i * 80);
+        });
+      }, 200);
     });
   }
 
-  function closeWorksViewer() {
+  function closeGallery(panel, gallery) {
     viewerOpen = false;
-    worksViewer.classList.remove('open');
+    activePanel = null;
+
+    const overlay = panel.querySelector('.work-img-overlay');
+    const bgImg = panel.querySelector('.work-bg-img');
+    const cardInner = panel.querySelector('.work-card-inner');
+
+    if (overlay) overlay.classList.remove('fade-out');
+    if (bgImg) bgImg.classList.remove('revealed');
+    if (cardInner) cardInner.classList.remove('hidden-for-gallery');
+
+    gallery.classList.remove('open');
     document.body.classList.remove('viewer-open');
+
+    // Reset item visibility
+    gallery.querySelectorAll('.pg-item').forEach(item => item.classList.remove('visible'));
   }
 
   // Open on View More click
   document.addEventListener('click', e => {
-    if (e.target.closest('.btn-view-more')) {
-      const idx = parseInt(e.target.closest('.btn-view-more').dataset.workIdx);
-      openWorksViewer(idx);
+    const btn = e.target.closest('.btn-view-more');
+    if (btn) {
+      const idx = parseInt(btn.dataset.workIdx);
+      const panel = btn.closest('.panel-work');
+      const gallery = panel.querySelector('.panel-gallery');
+      openGallery(panel, gallery, idx);
     }
   });
-
-  document.getElementById('wv-back').addEventListener('click', closeWorksViewer);
 
   // ESC to close
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && viewerOpen) closeWorksViewer();
-  });
-
-  // Parallax on wv-items scroll
-  const wvScroll = document.getElementById('wv-scroll');
-  wvScroll.addEventListener('scroll', () => {
-    wvScroll.querySelectorAll('.wv-item').forEach(item => {
-      const rect = item.getBoundingClientRect();
-      const center = window.innerHeight / 2;
-      const offset = (rect.top + rect.height / 2 - center) / window.innerHeight;
-      const img = item.querySelector('img');
-      if (img) img.style.transform = `scale(1.08) translateY(${offset * 30}px)`;
-    });
-  }, { passive: true });
-
-  // Mouse tilt on wv-items
-  wvScroll.addEventListener('mousemove', e => {
-    const item = e.target.closest('.wv-item');
-    if (!item) return;
-    const rect = item.getBoundingClientRect();
-    const dx = (e.clientX - rect.left) / rect.width - 0.5;
-    const dy = (e.clientY - rect.top) / rect.height - 0.5;
-    const img = item.querySelector('img');
-    if (img) {
-      img.style.transform = `scale(1.08) translate(${dx * -18}px, ${dy * -12}px)`;
+    if (e.key === 'Escape' && viewerOpen && activePanel) {
+      const gallery = activePanel.querySelector('.panel-gallery');
+      closeGallery(activePanel, gallery);
     }
-    const shine = item.querySelector('.wv-img-shine');
-    if (shine) {
-      shine.style.background = `radial-gradient(circle at ${(dx+0.5)*100}% ${(dy+0.5)*100}%, rgba(255,255,255,0.08), transparent 60%)`;
-      shine.style.opacity = '1';
-    }
-  });
-  wvScroll.addEventListener('mouseleave', e => {
-    const item = e.target.closest?.('.wv-item');
-    wvScroll.querySelectorAll('.wv-item').forEach(it => {
-      const img = it.querySelector('img');
-      if (img) img.style.transform = '';
-      const shine = it.querySelector('.wv-img-shine');
-      if (shine) shine.style.opacity = '0';
-    });
   });
 
   /* --- About bio --- */
@@ -435,30 +482,4 @@ const CONFIG = {
 
 })();
 
-/* Intersection observer untuk wv-items — trigger saat scroll di dalam viewer */
-(function() {
-  const wvScrollEl = document.getElementById('wv-scroll');
-  const items = document.querySelectorAll('.wv-item');
 
-  function checkVisible() {
-    const scrollTop = wvScrollEl.scrollTop;
-    const viewH = wvScrollEl.clientHeight;
-    items.forEach(item => {
-      const top = item.offsetTop - wvScrollEl.offsetTop;
-      if (top < scrollTop + viewH * 0.9) {
-        item.classList.add('visible');
-      }
-    });
-  }
-
-  wvScrollEl.addEventListener('scroll', checkVisible, { passive: true });
-
-  // Also trigger when viewer opens
-  const viewer = document.getElementById('works-viewer');
-  const openObserver = new MutationObserver(() => {
-    if (viewer.classList.contains('open')) {
-      setTimeout(checkVisible, 100);
-    }
-  });
-  openObserver.observe(viewer, { attributes: true, attributeFilter: ['class'] });
-})();
