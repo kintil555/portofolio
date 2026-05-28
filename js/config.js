@@ -9,9 +9,9 @@
 const CONFIG = {
 
   // ── INFO PRIBADI ───────────────────────────
-  name: "GK_TW",
-  tagline: "Minecraft 3D Animator",
-  bio: "Halo! Saya seorang animator Minecraft yang suka bikin konten cinematic, horror, dan action. Semua karya di sini dibuat murni dari kreativitas sendiri.",
+  name: "Voxel/Clion",
+  tagline: "Hanya seseorang yang suka membuat animasi radnom atau render thumbnail",
+  bio: "Halo, aku Voxel, masih esempeh, .",
 
   // ── SOCIAL MEDIA (isi link, kosongkan "" kalau tidak punya) ──
   social: {
@@ -59,12 +59,10 @@ const CONFIG = {
   skills: [
     "Minecraft 3D Animation",
     "Cinematic Rendering",
-    "Character Design",
     "Horror Atmosphere",
-    "Scene Composition",
-    "Motion & FX",
+    "Vierarchical Visuals",
   ],
 
   // ── FOOTER ────────────────────────────────
-  footerText: "Dibuat dengan ❤️ oleh GK_TW",
+  footerText: "Dibuat dengan niat tinggi oleh Voxel/Clion",
 };
