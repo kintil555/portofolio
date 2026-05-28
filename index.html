@@ -9,6 +9,10 @@
 </head>
 <body>
 
+  <!-- Custom cursor -->
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-ring" id="cursor-ring"></div>
+
   <!-- ==============================
        NAVBAR
   ================================= -->
@@ -84,11 +88,15 @@
 
       </div>
     </div>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-hint-line"></div>
+    </div>
   </section>
 
 
   <!-- ==============================
-       WORKS / SLIDER
+       WORKS / GRID
   ================================= -->
   <section id="works" class="section section-alt">
     <div class="container">
@@ -98,18 +106,8 @@
         <h2 class="section-title">Karya Saya</h2>
       </div>
 
-      <div class="fade-up" data-delay="100">
-        <div class="slider-wrap">
-          <div id="slider-track" class="slider-track"></div>
-        </div>
-
-        <div class="slider-controls">
-          <div class="slider-dots" id="slider-dots"></div>
-          <div class="slider-arrows">
-            <button class="arrow-btn" id="arrow-prev" aria-label="Sebelumnya">‹</button>
-            <button class="arrow-btn" id="arrow-next" aria-label="Berikutnya">›</button>
-          </div>
-        </div>
+      <div class="works-grid fade-up" data-delay="100" id="works-grid">
+        <!-- JS populated -->
       </div>
 
     </div>

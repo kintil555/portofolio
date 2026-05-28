@@ -132,68 +132,103 @@ const CONFIG = {
     ).join('');
   }
 
-  /* --- Slider / Works --- */
-  const track = document.getElementById('slider-track');
-  const dotsWrap = document.getElementById('slider-dots');
-  let current = 0;
-  let autoTimer = null;
-
-  function buildSlides() {
-    track.innerHTML = CONFIG.works.map((w, i) => `
-      <div class="slide">
-        <div class="slide-img">
+  /* --- Works Grid with Tilt --- */
+  const worksGrid = document.getElementById('works-grid');
+  if (worksGrid) {
+    worksGrid.innerHTML = CONFIG.works.map((w, i) => `
+      <div class="work-card" data-idx="${i}">
+        <div class="work-card-img">
           <img src="${w.image}" alt="${w.title}" loading="lazy">
-          <div class="slide-img-overlay"></div>
         </div>
-        <div class="slide-info">
-          <span class="slide-tag">${w.tag}</span>
-          <h3 class="slide-title">${w.title}</h3>
-          <div class="slide-meta">
-            <span>${w.year}</span>
-            <span>·</span>
-            <span>${String(i + 1).padStart(2, '0')} / ${String(CONFIG.works.length).padStart(2, '0')}</span>
-          </div>
+        <div class="work-card-shine"></div>
+        <div class="work-card-info">
+          <p class="work-card-tag">${w.tag}</p>
+          <h3 class="work-card-title">${w.title}</h3>
+          <p class="work-card-meta">${w.year}</p>
         </div>
       </div>
     `).join('');
-  }
 
-  function buildDots() {
-    dotsWrap.innerHTML = CONFIG.works.map((_, i) =>
-      `<button class="dot ${i === 0 ? 'active' : ''}" data-idx="${i}" aria-label="Slide ${i + 1}"></button>`
-    ).join('');
-    dotsWrap.querySelectorAll('.dot').forEach(btn => {
-      btn.addEventListener('click', () => { goTo(parseInt(btn.dataset.idx)); resetAuto(); });
+    // Tilt & shine effect on mousemove
+    document.querySelectorAll('.work-card').forEach((card, i) => {
+      const BASE_Z = [-1.5, 1, -0.7][i] || 0;
+
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = (e.clientX - cx) / (rect.width / 2);
+        const dy = (e.clientY - cy) / (rect.height / 2);
+        const rotX = -dy * 10;
+        const rotY = dx * 10;
+        card.style.transform = `perspective(900px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${BASE_Z * 0.3}deg) scale(1.03)`;
+
+        // Shine position
+        const mx = ((e.clientX - rect.left) / rect.width) * 100;
+        const my = ((e.clientY - rect.top) / rect.height) * 100;
+        const shine = card.querySelector('.work-card-shine');
+        if (shine) { shine.style.setProperty('--mx', mx + '%'); shine.style.setProperty('--my', my + '%'); }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = `perspective(900px) rotateZ(${BASE_Z}deg)`;
+      });
     });
   }
 
-  function goTo(idx) {
-    current = ((idx % CONFIG.works.length) + CONFIG.works.length) % CONFIG.works.length;
-    track.style.transform = `translateX(-${100 * current}%)`;
-    dotsWrap.querySelectorAll('.dot').forEach((d, i) => {
-      d.classList.toggle('active', i === current);
+  /* --- Custom Cursor --- */
+  const cursorDot = document.getElementById('cursor-dot');
+  const cursorRing = document.getElementById('cursor-ring');
+  if (cursorDot && cursorRing) {
+    let ringX = 0, ringY = 0, dotX = 0, dotY = 0, raf;
+
+    document.addEventListener('mousemove', e => {
+      dotX = e.clientX; dotY = e.clientY;
+      cursorDot.style.left = dotX + 'px';
+      cursorDot.style.top = dotY + 'px';
+    }, { passive: true });
+
+    function animateRing() {
+      ringX += (dotX - ringX) * 0.12;
+      ringY += (dotY - ringY) * 0.12;
+      cursorRing.style.left = ringX + 'px';
+      cursorRing.style.top = ringY + 'px';
+      raf = requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    const hoverEls = 'a, button, .work-card, .skill-tag, .social-link';
+    document.querySelectorAll(hoverEls).forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
     });
+
+    document.addEventListener('mouseleave', () => { cursorDot.style.opacity = '0'; cursorRing.style.opacity = '0'; });
+    document.addEventListener('mouseenter', () => { cursorDot.style.opacity = '1'; cursorRing.style.opacity = '1'; });
   }
 
-  function resetAuto() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(() => goTo(current + 1), 4500);
+  /* --- Magnetic buttons --- */
+  document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
+    btn.addEventListener('mousemove', e => {
+      const rect = btn.getBoundingClientRect();
+      const dx = e.clientX - (rect.left + rect.width / 2);
+      const dy = e.clientY - (rect.top + rect.height / 2);
+      btn.style.transform = `translate(${dx * 0.18}px, ${dy * 0.25}px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+    });
+  });
+
+  /* --- Hero image parallax on mousemove --- */
+  const heroWrap = document.querySelector('.hero-img-wrap');
+  if (heroWrap) {
+    document.addEventListener('mousemove', e => {
+      const dx = (e.clientX / window.innerWidth - 0.5) * 14;
+      const dy = (e.clientY / window.innerHeight - 0.5) * 8;
+      heroWrap.style.transform = `translateY(var(--float-y, 0px)) rotateY(${dx * 0.4}deg) rotateX(${-dy * 0.3}deg)`;
+    }, { passive: true });
   }
-
-  buildSlides();
-  buildDots();
-  resetAuto();
-
-  document.getElementById('arrow-prev').addEventListener('click', () => { goTo(current - 1); resetAuto(); });
-  document.getElementById('arrow-next').addEventListener('click', () => { goTo(current + 1); resetAuto(); });
-
-  // Touch/swipe support
-  let touchStartX = 0;
-  track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend', e => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) { goTo(diff > 0 ? current + 1 : current - 1); resetAuto(); }
-  }, { passive: true });
 
   /* --- Commission section --- */
   const badge = document.getElementById('comm-badge');
