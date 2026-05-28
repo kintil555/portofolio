@@ -96,144 +96,182 @@ const CONFIG = {
   `).join('');
 
   /* =============================================
-     WORKS GALLERY — In-panel horizontal scroll
-     Overlay gelap fade out, gallery muncul di atas
-     background panel yang tetap keliatan
+     WORKS GALLERY — Full-screen slideshow
+     Scroll/drag horizontal ganti background full panel
+     Tanpa card/thumbnail, image gede jelas
      ============================================= */
 
   let viewerOpen = false;
   let activePanel = null;
 
-  // Inject gallery HTML into each work panel
+  // Inject gallery HTML (satu per panel, full-screen slideshow)
   document.querySelectorAll('.panel-work').forEach((panel, panelIdx) => {
-
-    // Gallery container (starts hidden, inside the panel)
     const gallery = document.createElement('div');
     gallery.className = 'panel-gallery';
     gallery.innerHTML = `
       <div class="pg-header">
         <button class="pg-back">← Kembali</button>
         <span class="pg-label">Karya Saya</span>
-        <span class="pg-hint">DRAG / SCROLL →</span>
+        <span class="pg-hint">← DRAG / SCROLL →</span>
       </div>
-      <div class="pg-track-wrap">
-        <div class="pg-track">
-          ${CONFIG.works.map((w, i) => `
-            <div class="pg-item ${i === panelIdx ? 'pg-item-active' : ''}">
-              <div class="pg-img-wrap">
-                <img src="${w.image}" alt="${w.title}" loading="lazy">
-                <div class="pg-shine"></div>
-              </div>
-              <div class="pg-info">
-                <p class="pg-num">${String(i + 1).padStart(2, '0')}</p>
-                <p class="pg-tag">${w.tag}</p>
-                <h3 class="pg-title">${w.title}</h3>
-                <p class="pg-year">${w.year}</p>
-                ${w.desc ? `<p class="pg-desc">${w.desc}</p>` : ''}
-              </div>
-            </div>
-          `).join('')}
+      <div class="pg-slides">
+        ${CONFIG.works.map((w, i) => `
+          <div class="pg-slide" data-idx="${i}">
+            <img src="${w.image}" alt="${w.title}" loading="lazy">
+          </div>
+        `).join('')}
+      </div>
+      <div class="pg-info-bar">
+        <div class="pg-info-inner">
+          <span class="pg-info-tag"></span>
+          <h3 class="pg-info-title"></h3>
+          <p class="pg-info-desc"></p>
         </div>
+        <span class="pg-counter"></span>
+      </div>
+      <div class="pg-dots">
+        ${CONFIG.works.map((_, i) => `<span class="pg-dot" data-dot="${i}"></span>`).join('')}
       </div>
     `;
     panel.appendChild(gallery);
+
+    const slides = gallery.querySelectorAll('.pg-slide');
+    const dots = gallery.querySelectorAll('.pg-dot');
+    const infoTag = gallery.querySelector('.pg-info-tag');
+    const infoTitle = gallery.querySelector('.pg-info-title');
+    const infoDesc = gallery.querySelector('.pg-info-desc');
+    const counter = gallery.querySelector('.pg-counter');
+    let currentSlide = 0;
+    let isTransitioning = false;
+
+    function goToSlide(idx, dir = 1) {
+      if (isTransitioning || idx === currentSlide) return;
+      isTransitioning = true;
+
+      const prev = slides[currentSlide];
+      const next = slides[idx];
+
+      // Slide out prev
+      prev.classList.add(dir > 0 ? 'slide-out-left' : 'slide-out-right');
+
+      // Prep next
+      next.style.zIndex = 2;
+      next.classList.add(dir > 0 ? 'slide-in-right' : 'slide-in-left');
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          next.classList.add('slide-active');
+          next.classList.remove(dir > 0 ? 'slide-in-right' : 'slide-in-left');
+        });
+      });
+
+      setTimeout(() => {
+        prev.classList.remove('active', 'slide-out-left', 'slide-out-right');
+        prev.style.zIndex = '';
+        next.style.zIndex = '';
+        next.classList.add('active');
+        next.classList.remove('slide-active', 'slide-in-right', 'slide-in-left');
+        currentSlide = idx;
+        updateInfo();
+        isTransitioning = false;
+      }, 520);
+
+      // Update dots immediately
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+
+    function updateInfo() {
+      const w = CONFIG.works[currentSlide];
+      infoTag.textContent = w.tag;
+      infoTitle.textContent = w.title;
+      infoDesc.textContent = w.desc || '';
+      counter.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(CONFIG.works.length).padStart(2, '0')}`;
+    }
+
+    // Dots click
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => goToSlide(i, i > currentSlide ? 1 : -1));
+    });
 
     // Back button
     gallery.querySelector('.pg-back').addEventListener('click', () => {
       closeGallery(panel, gallery);
     });
 
-    // Drag scroll on track
-    const trackWrap = gallery.querySelector('.pg-track-wrap');
-    let isDragging = false, startX = 0, scrollLeft = 0;
-    trackWrap.addEventListener('mousedown', e => {
-      isDragging = true;
-      startX = e.pageX - trackWrap.offsetLeft;
-      scrollLeft = trackWrap.scrollLeft;
-      trackWrap.style.cursor = 'grabbing';
+    // Drag / swipe handling
+    let dragStartX = 0, dragging = false, dragMoved = 0;
+    gallery.addEventListener('mousedown', e => {
+      dragging = true; dragStartX = e.clientX; dragMoved = 0;
+      gallery.style.cursor = 'grabbing';
     });
-    trackWrap.addEventListener('mousemove', e => {
-      if (!isDragging) return;
-      e.preventDefault();
-      const x = e.pageX - trackWrap.offsetLeft;
-      trackWrap.scrollLeft = scrollLeft - (x - startX);
+    gallery.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      dragMoved = e.clientX - dragStartX;
     });
-    trackWrap.addEventListener('mouseup', () => { isDragging = false; trackWrap.style.cursor = ''; });
-    trackWrap.addEventListener('mouseleave', () => { isDragging = false; trackWrap.style.cursor = ''; });
+    gallery.addEventListener('mouseup', () => {
+      if (dragging) {
+        gallery.style.cursor = '';
+        if (Math.abs(dragMoved) > 60) {
+          if (dragMoved < 0 && currentSlide < CONFIG.works.length - 1) goToSlide(currentSlide + 1, 1);
+          else if (dragMoved > 0 && currentSlide > 0) goToSlide(currentSlide - 1, -1);
+        }
+        dragging = false;
+      }
+    });
+    gallery.addEventListener('mouseleave', () => { dragging = false; gallery.style.cursor = ''; });
 
-    // Wheel scroll horizontal di dalam gallery (supaya nggak trigger h-scroll utama)
-    trackWrap.addEventListener('wheel', e => {
+    // Wheel scroll
+    gallery.addEventListener('wheel', e => {
       e.stopPropagation();
       e.preventDefault();
-      trackWrap.scrollLeft += e.deltaY + e.deltaX;
+      if (e.deltaY > 40 || e.deltaX > 40) {
+        if (currentSlide < CONFIG.works.length - 1) goToSlide(currentSlide + 1, 1);
+      } else if (e.deltaY < -40 || e.deltaX < -40) {
+        if (currentSlide > 0) goToSlide(currentSlide - 1, -1);
+      }
     }, { passive: false });
 
-    // Touch scroll horizontal
-    let touchStartX = 0, touchScrollLeft = 0;
-    trackWrap.addEventListener('touchstart', e => {
-      touchStartX = e.touches[0].pageX;
-      touchScrollLeft = trackWrap.scrollLeft;
-    }, { passive: true });
-    trackWrap.addEventListener('touchmove', e => {
-      const dx = touchStartX - e.touches[0].pageX;
-      trackWrap.scrollLeft = touchScrollLeft + dx;
+    // Touch swipe
+    let touchX = 0;
+    gallery.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+    gallery.addEventListener('touchend', e => {
+      const dx = touchX - e.changedTouches[0].clientX;
+      if (Math.abs(dx) > 50) {
+        if (dx > 0 && currentSlide < CONFIG.works.length - 1) goToSlide(currentSlide + 1, 1);
+        else if (dx < 0 && currentSlide > 0) goToSlide(currentSlide - 1, -1);
+      }
     }, { passive: true });
 
-    // Mouse tilt + shine on pg-items
-    gallery.querySelectorAll('.pg-item').forEach(item => {
-      item.addEventListener('mousemove', e => {
-        const rect = item.getBoundingClientRect();
-        const dx = (e.clientX - rect.left) / rect.width - 0.5;
-        const dy = (e.clientY - rect.top) / rect.height - 0.5;
-        const img = item.querySelector('img');
-        if (img) img.style.transform = `scale(1.05) translate(${dx * -12}px, ${dy * -8}px)`;
-        const shine = item.querySelector('.pg-shine');
-        if (shine) {
-          shine.style.background = `radial-gradient(circle at ${(dx+0.5)*100}% ${(dy+0.5)*100}%, rgba(255,255,255,0.1), transparent 60%)`;
-          shine.style.opacity = '1';
-        }
-      });
-      item.addEventListener('mouseleave', () => {
-        const img = item.querySelector('img');
-        if (img) img.style.transform = '';
-        const shine = item.querySelector('.pg-shine');
-        if (shine) shine.style.opacity = '0';
-      });
-    });
+    // Store goToSlide on gallery element for openGallery
+    gallery._goToSlide = goToSlide;
+    gallery._updateInfo = updateInfo;
+    gallery._currentSlide = () => currentSlide;
+    gallery._setSlide = (idx) => { currentSlide = idx; };
   });
 
   function openGallery(panel, gallery, targetIdx) {
     viewerOpen = true;
     activePanel = panel;
 
-    // Fade out the dark overlay on the panel
     const overlay = panel.querySelector('.work-img-overlay');
-    const bgImg = panel.querySelector('.work-bg-img');
     const cardInner = panel.querySelector('.work-card-inner');
 
     if (overlay) overlay.classList.add('fade-out');
-    if (bgImg) bgImg.classList.add('revealed');
     if (cardInner) cardInner.classList.add('hidden-for-gallery');
 
-    // Show gallery
+    // Set starting slide instantly (no animation)
+    const slides = gallery.querySelectorAll('.pg-slide');
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === targetIdx);
+    });
+    gallery._setSlide(targetIdx);
+    gallery._updateInfo();
+
+    const dots = gallery.querySelectorAll('.pg-dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === targetIdx));
+
     gallery.classList.add('open');
     document.body.classList.add('viewer-open');
-
-    // Scroll to target item
-    requestAnimationFrame(() => {
-      const trackWrap = gallery.querySelector('.pg-track-wrap');
-      const items = gallery.querySelectorAll('.pg-item');
-      const target = items[targetIdx];
-      if (target && trackWrap) {
-        trackWrap.scrollLeft = target.offsetLeft - 60;
-      }
-      // Animate items in
-      setTimeout(() => {
-        items.forEach((item, i) => {
-          setTimeout(() => item.classList.add('visible'), i * 80);
-        });
-      }, 200);
-    });
   }
 
   function closeGallery(panel, gallery) {
@@ -241,18 +279,13 @@ const CONFIG = {
     activePanel = null;
 
     const overlay = panel.querySelector('.work-img-overlay');
-    const bgImg = panel.querySelector('.work-bg-img');
     const cardInner = panel.querySelector('.work-card-inner');
 
     if (overlay) overlay.classList.remove('fade-out');
-    if (bgImg) bgImg.classList.remove('revealed');
     if (cardInner) cardInner.classList.remove('hidden-for-gallery');
 
     gallery.classList.remove('open');
     document.body.classList.remove('viewer-open');
-
-    // Reset item visibility
-    gallery.querySelectorAll('.pg-item').forEach(item => item.classList.remove('visible'));
   }
 
   // Open on View More click

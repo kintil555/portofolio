@@ -790,21 +790,75 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   position: absolute;
   inset: 0;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(16px);
-  transition: opacity 0.55s cubic-bezier(0.23, 1, 0.32, 1),
-              transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
-  /* Subtle dark vignette so text tetap readable di atas gambar */
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: grab;
   background: radial-gradient(ellipse at center, transparent 30%, rgba(8,9,13,0.4) 100%);
 }
 .panel-gallery.open {
   opacity: 1;
   pointer-events: all;
-  transform: translateY(0);
+}
+
+/* Slides container — full panel */
+.pg-slides {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Individual slide — full bg */
+.pg-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.pg-slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+.pg-slide.slide-out-left {
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+.pg-slide.slide-out-right {
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+.pg-slide.slide-in-right,
+.pg-slide.slide-in-left {
+  opacity: 0;
+  z-index: 2;
+}
+.pg-slide.slide-active {
+  opacity: 1;
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.pg-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Gradient vignette bawah agar teks terbaca */
+.panel-gallery::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(8,9,13,0.85) 0%,
+    rgba(8,9,13,0.2) 40%,
+    transparent 70%
+  );
 }
 
 /* Gallery header */
@@ -816,7 +870,7 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   justify-content: space-between;
   padding: 28px 52px;
   z-index: 10;
-  background: linear-gradient(to bottom, rgba(8,9,13,0.85) 50%, transparent);
+  background: linear-gradient(to bottom, rgba(8,9,13,0.75) 50%, transparent);
   pointer-events: none;
 }
 .pg-header button { pointer-events: all; }
@@ -833,7 +887,7 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   background: rgba(8,9,13,0.6);
-  cursor: none;
+  cursor: pointer;
   transition: color .2s, border-color .2s, background .2s, transform .15s;
   backdrop-filter: blur(10px);
 }
@@ -859,117 +913,74 @@ body.gallery-open .panel-dots { opacity: 0; pointer-events: none; }
   animation: pulse-opacity 2.5s ease-in-out infinite;
 }
 
-/* Horizontal scroll track */
-.pg-track-wrap {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  padding: 80px 52px 60px;
-  cursor: grab;
-  -webkit-overflow-scrolling: touch;
-}
-.pg-track-wrap::-webkit-scrollbar { display: none; }
-.pg-track-wrap:active { cursor: grabbing; }
-
-.pg-track {
-  display: flex;
-  gap: 24px;
-  width: max-content;
-  align-items: center;
-}
-
-/* Gallery items */
-.pg-item {
-  flex-shrink: 0;
-  width: 58vw;
-  max-width: 720px;
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 36px;
-  align-items: center;
-  opacity: 0;
-  transform: translateX(30px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-.pg-item.visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.pg-img-wrap {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  aspect-ratio: 16/9;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 24px 60px rgba(0,0,0,0.7);
-  will-change: transform;
-}
-.pg-img-wrap img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1);
-  transform: scale(1.05);
-}
-.pg-shine {
+/* Info bar — bottom left, di atas vignette */
+.pg-info-bar {
   position: absolute;
-  inset: 0;
-  opacity: 0;
+  bottom: 52px;
+  left: 52px;
+  right: 52px;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   pointer-events: none;
-  transition: opacity 0.3s;
-  border-radius: 16px;
 }
-
-/* Info side */
-.pg-info {
+.pg-info-inner {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
-.pg-num {
-  font-family: var(--mono);
-  font-size: 52px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.05);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  margin-bottom: -6px;
-}
-.pg-tag {
+.pg-info-tag {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent2);
 }
-.pg-title {
-  font-size: clamp(1.6rem, 2.2vw, 2.4rem);
+.pg-info-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--white);
   line-height: 1.05;
+  margin: 0;
 }
-.pg-year {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--dim);
-}
-.pg-desc {
+.pg-info-desc {
   font-size: 13px;
-  font-weight: 500;
   color: var(--muted);
-  line-height: 1.75;
-  max-width: 240px;
-  margin-top: 6px;
-  border-left: 2px solid rgba(52,211,153,0.25);
-  padding-left: 14px;
+  line-height: 1.7;
+  max-width: 380px;
+  margin-top: 4px;
+}
+.pg-counter {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
 }
 
-/* Active item highlight */
-.pg-item-active .pg-img-wrap {
-  box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(52,211,153,0.2);
+/* Dots navigation */
+.pg-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  pointer-events: all;
+}
+.pg-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: background 0.3s, width 0.3s;
+}
+.pg-dot.active {
+  background: var(--accent2);
+  width: 24px;
 }
 
 /* Block h-scroll when gallery open */
@@ -978,9 +989,8 @@ body.viewer-open .panel-dots { opacity: 0; pointer-events: none; transition: opa
 
 /* Mobile */
 @media (max-width: 768px) {
-  .pg-track-wrap { padding: 80px 20px 60px; }
   .pg-header { padding: 20px 24px; }
-  .pg-item { width: 80vw; grid-template-columns: 1fr; gap: 16px; }
-  .pg-num { font-size: 36px; }
-  .pg-title { font-size: 1.5rem; }
+  .pg-info-bar { bottom: 40px; left: 24px; right: 24px; }
+  .pg-info-title { font-size: clamp(1.6rem, 6vw, 2.2rem); }
 }
+
